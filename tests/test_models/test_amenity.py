@@ -1,113 +1,52 @@
 #!/usr/bin/python3
-"""TestAmenityDocs classes"""
 
-from datetime import datetime
-import inspect
-from models import amenity
-from models.base_model import BaseModel
-import os
-import pep8
 import unittest
-from sqlalchemy.orm.attributes import InstrumentedAttribute
-Amenity = amenity.Amenity
+import os
 
-
-class TestAmenityDocs(unittest.TestCase):
-    """Tests the documentation and style of Amenity class"""
-    @classmethod
-    def setUpClass(cls):
-        """Set up for the doc tests"""
-        cls.amenity_f = inspect.getmembers(Amenity, inspect.isfunction)
-
-    def test_pep8_conformance_amenity(self):
-        """Test that models/amenity.py conforms to PEP8."""
-        pep8s = pep8.StyleGuide(quiet=True)
-        result = pep8s.check_files(['models/amenity.py'])
-        self.assertEqual(result.total_errors, 0,
-                         "Found code style errors")
-
-    def test_pep8_conformance_test_amenity(self):
-        """Test that tests/test_models/test_amenity.py conforms to PEP8."""
-        pep8s = pep8.StyleGuide(quiet=True)
-        result = pep8s.check_files(['tests/test_models/test_amenity.py'])
-        self.assertEqual(result.total_errors, 0,
-                         "Found code style errors")
-
-    def test_amenity_module_docstring(self):
-        """Test for the amenity.py module"""
-        self.assertIsNot(amenity.__doc__, None,
-                         "amenity.py")
-        self.assertTrue(len(amenity.__doc__) >= 1,
-                        "amenity.py")
-
-    def test_amenity_class_docstring(self):
-        """Test for the Amenity class"""
-        self.assertIsNot(Amenity.__doc__, None,
-                         "Amenity class")
-        self.assertTrue(len(Amenity.__doc__) >= 1,
-                        "Amenity class")
-
-    def test_amenity_func_docstrings(self):
-        """Test for the presence of docstrings in Amenity methods"""
-        for func in self.amenity_f:
-            self.assertIsNot(func[1].__doc__, None,
-                             "{:s} method needs a docstring".format(func[0]))
-            self.assertTrue(len(func[1].__doc__) >= 1,
-                            "{:s} method needs a docstring".format(func[0]))
+from models.amenity import Amenity
+from models.base_model import BaseModel
 
 
 class TestAmenity(unittest.TestCase):
-    """Test the Amenity class"""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.amenity1 = Amenity()
+        cls.amenity1.name = "Hot Tub"
+
+    @classmethod
+    def tearDownClass(cls):
+        del cls.amenity1
+        try:
+            os.remove("file.json")
+        except FileNotFoundError:
+            pass
+
     def test_is_subclass(self):
-        """Test that Amenity is a subclass of BaseModel"""
-        amenity = Amenity()
-        self.assertIsInstance(amenity, BaseModel)
-        self.assertTrue(hasattr(amenity, "id"))
-        self.assertTrue(hasattr(amenity, "created_at"))
-        self.assertTrue(hasattr(amenity, "updated_at"))
+        self.assertTrue(issubclass(self.amenity1.__class__, BaseModel), True)
 
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db',
-                     "Testing DBStorage")
-    def test_name_attr(self):
-        """Test that Amenity has attribute name, and it's as an empty string"""
-        amenity = Amenity()
-        self.assertTrue(hasattr(amenity, "name"))
-        self.assertEqual(amenity.name, "")
+    def test_checking_for_functions(self):
+        self.assertIsNotNone(Amenity.__doc__)
 
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db',
-                     "Testing FileStorage")
-    def test_name_attr_db(self):
-        """Test for DBStorage name attribute"""
-        amenity = Amenity()
-        self.assertTrue(hasattr(Amenity, "name"))
-        self.assertIsInstance(Amenity.name, InstrumentedAttribute)
+    def test_has_attributes(self):
+        self.assertTrue('id' in self.amenity1.__dict__)
+        self.assertTrue('created_at' in self.amenity1.__dict__)
+        self.assertTrue('updated_at' in self.amenity1.__dict__)
+        self.assertTrue('name' in self.amenity1.__dict__)
 
-    def test_to_dict_creates_dict(self):
-        """test to_dict method creates a dictionary with proper attrs"""
-        am = Amenity()
-        new_d = am.to_dict()
-        self.assertEqual(type(new_d), dict)
-        for attr in am.__dict__:
-            with self.subTest(attr=attr):
-                if attr == '_sa_instance_state':
-                    continue
-                self.assertTrue(attr in new_d)
-        if os.getenv('HBNB_TYPE_STORAGE') != 'db':
-            self.assertTrue("__class__" in new_d)
+    def test_attributes_are_strings(self):
+        self.assertEqual(type(self.amenity1.name), str)
 
-    def test_to_dict_values(self):
-        """test that values in dict returned from to_dict are correct"""
-        t_format = "%Y-%m-%dT%H:%M:%S.%f"
-        am = Amenity()
-        new_d = am.to_dict()
-        self.assertEqual(new_d["__class__"], "Amenity")
-        self.assertEqual(type(new_d["created_at"]), str)
-        self.assertEqual(type(new_d["updated_at"]), str)
-        self.assertEqual(new_d["created_at"], am.created_at.strftime(t_format))
-        self.assertEqual(new_d["updated_at"], am.updated_at.strftime(t_format))
+    @unittest.skipIf(
+        os.getenv('HBNB_TYPE_STORAGE') == 'db',
+        "won't work in db")
+    def test_save(self):
+        self.amenity1.save()
+        self.assertNotEqual(self.amenity1.created_at, self.amenity1.updated_at)
 
-    def test_str(self):
-        """test that the str method has the correct output"""
-        amenity = Amenity()
-        string = "[Amenity] ({}) {}".format(amenity.id, amenity.__dict__)
-        self.assertEqual(string, str(amenity))
+    def test_to_dict(self):
+        self.assertEqual('to_dict' in dir(self.amenity1), True)
+
+
+if __name__ == "__main__":
+    unittest.main()

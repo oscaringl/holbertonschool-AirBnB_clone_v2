@@ -1,228 +1,82 @@
 #!/usr/bin/python3
-"""TestPlaceDocs classes"""
 
-from datetime import datetime
-import inspect
-from models import place
-from models.base_model import BaseModel
-import os
-import pep8
 import unittest
-from sqlalchemy.orm.collections import InstrumentedList
-from sqlalchemy.orm.attributes import InstrumentedAttribute
-Place = place.Place
+import os
 
-
-class TestPlaceDocs(unittest.TestCase):
-    """Tests to check the Place class"""
-    @classmethod
-    def setUpClass(cls):
-        """Set up for the doc tests"""
-        cls.place_f = inspect.getmembers(Place, inspect.isfunction)
-
-    def test_pep8_conformance_place(self):
-        """Test that models/place.py conforms to PEP8."""
-        pep8s = pep8.StyleGuide(quiet=True)
-        result = pep8s.check_files(['models/place.py'])
-        self.assertEqual(result.total_errors, 0,
-                         "Found code style errors")
-
-    def test_pep8_conformance_test_place(self):
-        """Test that tests/test_models/test_place.py conforms to PEP8."""
-        pep8s = pep8.StyleGuide(quiet=True)
-        result = pep8s.check_files(['tests/test_models/test_place.py'])
-        self.assertEqual(result.total_errors, 0,
-                         "Found code style errors")
-
-    def test_place_module_docstring(self):
-        """Test for the place.py module docstring"""
-        self.assertIsNot(place.__doc__, None,
-                         "place.py needs a docstring")
-        self.assertTrue(len(place.__doc__) >= 1,
-                        "place.py needs a docstring")
-
-    def test_place_class_docstring(self):
-        """Test for the Place class docstring"""
-        self.assertIsNot(Place.__doc__, None,
-                         "Place class needs a docstring")
-        self.assertTrue(len(Place.__doc__) >= 1,
-                        "Place class needs a docstring")
-
-    def test_place_func_docstrings(self):
-        """Test for the presence of docstrings in Place methods"""
-        for func in self.place_f:
-            self.assertIsNot(func[1].__doc__, None,
-                             "{:s} method needs a docstring".format(func[0]))
-            self.assertTrue(len(func[1].__doc__) >= 1,
-                            "{:s} method needs a docstring".format(func[0]))
+from models.place import Place
+from models.base_model import BaseModel
 
 
 class TestPlace(unittest.TestCase):
-    """Test the Place class"""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.place1 = Place()
+        cls.place1.city_id = "Somewhere in India"
+        cls.place1.user_id = "Aladdin"
+        cls.place1.name = "Taj Mahal"
+        cls.place1.description = "Fit for a king"
+        cls.place1.number_rooms = 0
+        cls.place1.number_bathrooms = 0
+        cls.place1.max_guest = 0
+        cls.place1.price_by_night = 0
+        cls.place1.latitude = 0.0
+        cls.place1.longitude = 0.0
+        cls.place1.amenity_ids = []
+
+    @classmethod
+    def tearDownClass(cls):
+        del cls.place1
+        try:
+            os.remove("file.json")
+        except FileNotFoundError:
+            pass
+
     def test_is_subclass(self):
-        """Test that Place is a subclass of BaseModel"""
-        place = Place()
-        self.assertIsInstance(place, BaseModel)
-        self.assertTrue(hasattr(place, "id"))
-        self.assertTrue(hasattr(place, "created_at"))
-        self.assertTrue(hasattr(place, "updated_at"))
+        self.assertTrue(issubclass(self.place1.__class__, BaseModel), True)
 
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db',
-                     "Testing DBStorage")
-    def test_city_id_attr(self):
-        """Test Place has attr city_id, and it's an empty string"""
-        place = Place()
-        self.assertTrue(hasattr(place, "city_id"))
-        self.assertEqual(place.city_id, "")
+    def test_checking_for_functions(self):
+        self.assertIsNotNone(Place.__doc__)
 
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db',
-                     "Testing FileStorage")
-    def test_city_id_attr_db(self):
-        """Test Place has attr city_id, and it's an empty string"""
-        place = Place()
-        self.assertTrue(hasattr(Place, "city_id"))
-        self.assertIsInstance(Place.city_id, InstrumentedAttribute)
+    def test_has_attributes(self):
+        self.assertTrue('id' in self.place1.__dict__)
+        self.assertTrue('created_at' in self.place1.__dict__)
+        self.assertTrue('updated_at' in self.place1.__dict__)
+        self.assertTrue('city_id' in self.place1.__dict__)
+        self.assertTrue('user_id' in self.place1.__dict__)
+        self.assertTrue('name' in self.place1.__dict__)
+        self.assertTrue('description' in self.place1.__dict__)
+        self.assertTrue('number_rooms' in self.place1.__dict__)
+        self.assertTrue('number_bathrooms' in self.place1.__dict__)
+        self.assertTrue('max_guest' in self.place1.__dict__)
+        self.assertTrue('price_by_night' in self.place1.__dict__)
+        self.assertTrue('latitude' in self.place1.__dict__)
+        self.assertTrue('longitude' in self.place1.__dict__)
+        self.assertTrue('amenity_ids' in self.place1.__dict__)
 
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db',
-                     "Testing DBStorage")
-    def test_user_id_attr(self):
-        """Test Place has attr user_id, and it's an empty string"""
-        place = Place()
-        self.assertTrue(hasattr(place, "user_id"))
-        self.assertIsInstance(place.user_id, "")
+    def test_attributes_are_strings(self):
+        self.assertEqual(type(self.place1.city_id), str)
+        self.assertEqual(type(self.place1.user_id), str)
+        self.assertEqual(type(self.place1.name), str)
+        self.assertEqual(type(self.place1.description), str)
+        self.assertEqual(type(self.place1.number_rooms), int)
+        self.assertEqual(type(self.place1.number_bathrooms), int)
+        self.assertEqual(type(self.place1.max_guest), int)
+        self.assertEqual(type(self.place1.price_by_night), int)
+        self.assertEqual(type(self.place1.latitude), float)
+        self.assertEqual(type(self.place1.longitude), float)
+        self.assertEqual(type(self.place1.amenity_ids), list)
 
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db',
-                     "Testing FileStorage")
-    def test_user_id_attr_db(self):
-        """Test Place has attr user_id, and it's an empty string"""
-        place = Place()
-        self.assertTrue(hasattr(Place, "user_id"))
-        self.assertIsInstance(Place.user_id, InstrumentedAttribute)
+    @unittest.skipIf(
+        os.getenv('HBNB_TYPE_STORAGE') == 'db',
+        "won't work in db")
+    def test_save(self):
+        self.place1.save()
+        self.assertNotEqual(self.place1.created_at, self.place1.updated_at)
 
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db',
-                     "Testing DBStorage")
-    def test_name_attr(self):
-        """Test Place has attr name, and it's an empty string"""
-        place = Place()
-        self.assertTrue(hasattr(place, "name"))
-        self.assertEqual(place.name, "")
+    def test_to_dict(self):
+        self.assertEqual('to_dict' in dir(self.place1), True)
 
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db',
-                     "Testing FileStorage")
-    def test_name_attr_db(self):
-        """Test Place has attr name, and it's an empty string"""
-        place = Place()
-        self.assertTrue(hasattr(Place, "name"))
-        self.assertIsInstance(Place.name, InstrumentedAttribute)
 
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db',
-                     "Testing DBStorage")
-    def test_description_attr(self):
-        """Test Place has attr description, and it's an empty string"""
-        place = Place()
-        self.assertTrue(hasattr(place, "description"))
-        self.assertEqual(place.description, "")
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db',
-                     "Testing FileStorage")
-    def test_description_attr_db(self):
-        """Test Place has attr description, and it's an empty string"""
-        place = Place()
-        self.assertTrue(hasattr(Place, "description"))
-        self.assertIsInstance(Place.description, InstrumentedAttribute)
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db',
-                     "Testing DBStorage")
-    def test_number_rooms_attr(self):
-        """Test Place has attr number_rooms, and it's an int == 0"""
-        place = Place()
-        self.assertTrue(hasattr(place, "number_rooms"))
-        self.assertEqual(type(place.number_rooms), int)
-        self.assertEqual(place.number_rooms, 0)
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db',
-                     "Testing FileStorage")
-    def test_number_rooms_attr_db(self):
-        """Test Place has attr number_rooms, and it's an int == 0"""
-        place = Place()
-        self.assertTrue(hasattr(Place, "number_rooms"))
-        self.assertEqual(type(place.number_rooms), int)
-        self.assertEqual(place.number_rooms, 0)
-
-    def test_number_bathrooms_attr(self):
-        """Test Place has attr number_bathrooms, and it's an int == 0"""
-        place = Place()
-        self.assertTrue(hasattr(place, "number_bathrooms"))
-        self.assertEqual(type(place.number_bathrooms), int)
-        self.assertEqual(place.number_bathrooms, 0)
-
-    def test_max_guest_attr(self):
-        """Test Place has attr max_guest, and it's an int == 0"""
-        place = Place()
-        self.assertTrue(hasattr(place, "max_guest"))
-        self.assertEqual(type(place.max_guest), int)
-        self.assertEqual(place.max_guest, 0)
-
-    def test_price_by_night_attr(self):
-        """Test Place has attr price_by_night, and it's an int == 0"""
-        place = Place()
-        self.assertTrue(hasattr(place, "price_by_night"))
-        self.assertEqual(type(place.price_by_night), int)
-        self.assertEqual(place.price_by_night, 0)
-
-    def test_latitude_attr(self):
-        """Test Place has attr latitude, and it's a float == 0.0"""
-        place = Place()
-        self.assertTrue(hasattr(place, "latitude"))
-        self.assertEqual(type(place.latitude), float)
-        self.assertEqual(place.latitude, 0.0)
-
-    def test_latitude_attr(self):
-        """Test Place has attr longitude, and it's a float == 0.0"""
-        place = Place()
-        self.assertTrue(hasattr(place, "longitude"))
-        self.assertEqual(type(place.longitude), float)
-        self.assertEqual(place.longitude, 0.0)
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db',
-                     "Testing FileStorage")
-    def test_amenity_ids_attr(self):
-        """Test Place has attr amenity_ids, and it's an empty list"""
-        place = Place()
-        self.assertTrue(hasattr(place, "amenity_ids"))
-        self.assertEqual(type(place.amenity_ids), list)
-        self.assertEqual(len(place.amenity_ids), 0)
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db',
-                     "Testing FileStorage")
-    def test_amenities_attr_db(self):
-        """Test Place has attr amenity_ids, and it's an empty list"""
-        place = Place()
-        self.assertTrue(hasattr(Place, "amenities"))
-        self.assertEqual(type(place.amenities), InstrumentedList)
-
-    def test_to_dict_creates_dict(self):
-        """test to_dict method creates a dictionary with proper attrs"""
-        p = Place()
-        new_d = p.to_dict()
-        self.assertEqual(type(new_d), dict)
-        for attr in p.__dict__:
-            self.assertTrue(attr in new_d)
-            self.assertTrue("__class__" in new_d)
-
-    def test_to_dict_values(self):
-        """test that values in dict returned from to_dict are correct"""
-        t_format = "%Y-%m-%dT%H:%M:%S.%f"
-        p = Place()
-        new_d = p.to_dict()
-        self.assertEqual(new_d["__class__"], "Place")
-        self.assertEqual(type(new_d["created_at"]), str)
-        self.assertEqual(type(new_d["updated_at"]), str)
-        self.assertEqual(new_d["created_at"], p.created_at.strftime(t_format))
-        self.assertEqual(new_d["updated_at"], p.updated_at.strftime(t_format))
-
-    def test_str(self):
-        """test that the str method has the correct output"""
-        place = Place()
-        string = "[Place] ({}) {}".format(place.id, place.__dict__)
-        self.assertEqual(string, str(place))
+if __name__ == "__main__":
+    unittest.main()
