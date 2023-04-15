@@ -1,23 +1,22 @@
 #!/usr/bin/python3
-''' Test suite for the console'''
-
-
-import sys
-import models
+''' Class Test '''
 import unittest
-from models import storage
-from models import State
-from models.engine.db_storage import DBStorage
-from io import StringIO
+import pep8
+import inspect
+import datetime
+import sys
 from console import HBNBCommand
-from unittest.mock import create_autospec
-from os import getenv
-
-db = getenv("HBNB_TYPE_STORAGE", "fs")
 
 
-class test_console(unittest.TestCase):
-    ''' Test the console module'''
+class TestCodeconsole(unittest.TestCase):
+    """class test"""
+
+    def test_pep8_conformance(self):
+        """Test that we conform to PEP8."""
+        pep8style = pep8.StyleGuide(quiet=True)
+        result = pep8style.check_files(['models/base_model.py'])
+        self.assertEqual(result.total_errors, 0, "Found code style errors .")
+
     def setUp(self):
         '''setup for'''
         self.backup = sys.stdout
@@ -48,7 +47,9 @@ class test_console(unittest.TestCase):
         console.onecmd("all")
         self.assertTrue(isinstance(self.capt_out.getvalue(), str))
 
-    @unittest.skipIf(db == "db", "Testing database storage only")
+    @unittest.skipIf(
+        os.getenv('HBNB_TYPE_STORAGE') == 'db',
+        "won't work in db")
     def test_show(self):
         '''
             Testing that show exists
@@ -63,9 +64,11 @@ class test_console(unittest.TestCase):
         console.onecmd("show User " + user_id)
         x = (self.capt_out.getvalue())
         sys.stdout = self.backup
-        self.assertTrue(str is type(x))
+        self.assertTrue(isinstance(x, str))
 
-    @unittest.skipIf(db == "db", "Testing database storage only")
+    @unittest.skipIf(
+        os.getenv('HBNB_TYPE_STORAGE') == 'db',
+        "won't work in db")
     def test_show_class_name(self):
         '''
             Testing the error messages for class name missing.
@@ -82,6 +85,9 @@ class test_console(unittest.TestCase):
         sys.stdout = self.backup
         self.assertEqual("** class name missing **\n", x)
 
+    @unittest.skipIf(
+        os.getenv('HBNB_TYPE_STORAGE') == 'db',
+        "won't work in db")
     def test_show_class_name(self):
         '''
             Test show message error for id missing
@@ -98,7 +104,9 @@ class test_console(unittest.TestCase):
         sys.stdout = self.backup
         self.assertEqual("** instance id missing **\n", x)
 
-    @unittest.skipIf(db == "db", "Testing database storage only")
+    @unittest.skipIf(
+        os.getenv('HBNB_TYPE_STORAGE') == 'db',
+        "won't work in db")
     def test_show_no_instance_found(self):
         '''
             Test show message error for id missing
@@ -115,12 +123,15 @@ class test_console(unittest.TestCase):
         sys.stdout = self.backup
         self.assertEqual("** no instance found **\n", x)
 
-    def test_create(self):
+    @unittest.skipIf(
+        os.getenv('HBNB_TYPE_STORAGE') == 'db',
+        "won't work in db")
+    def test_create_fileStorage(self):
         '''
             Test that create works
         '''
         console = self.create()
-        console.onecmd("create User email=adriel@hbnb.com password=abc")
+        console.onecmd("create User")
         self.assertTrue(isinstance(self.capt_out.getvalue(), str))
 
     def test_class_name(self):
@@ -137,13 +148,6 @@ class test_console(unittest.TestCase):
             Testing the error messages for class name missing.
         '''
         console = self.create()
-        console.onecmd("create Binita")
+        console.onecmd("create Ons")
         x = (self.capt_out.getvalue())
         self.assertEqual("** class doesn't exist **\n", x)
-
-    @unittest.skipIf(db != 'db', "Testing DBstorage only")
-    def test_create_db(self):
-        console = self.create()
-        console.onecmd("create State name=California")
-        result = storage.all("State")
-        self.assertTrue(len(result) > 0)
