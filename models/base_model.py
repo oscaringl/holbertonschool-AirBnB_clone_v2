@@ -1,5 +1,7 @@
 #!/usr/bin/python3
-"""Class BaseModel"""
+"""
+Contains class BaseModel
+"""
 
 from datetime import datetime
 import models
